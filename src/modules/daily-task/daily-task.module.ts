@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DailyTaskService } from './daily-task.service';
 import { DailyTaskController } from './daily-task.controller';
 import { DailyTask, DailyTaskSchema } from './daily-task.schema';
-// import { FloorModule } from '../floor/floor.module'; // Import FloorModule to access FloorModel
 import { Floor, FloorSchema } from '../floor/floor.schema'; // Import FloorSchema to access FloorModel
 
 @Module({

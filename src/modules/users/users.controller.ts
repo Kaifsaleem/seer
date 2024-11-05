@@ -1,10 +1,11 @@
 import { Controller, Body } from '@nestjs/common';
 import { Get, Patch, Param, Delete, Request } from '@nestjs/common';
+
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-// import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-// import { Request as ExRequest } from 'express';
+import { Request as ExRequest } from 'express';
 import CtmPost from '../../common/decorators/post.decorator';
 
 @Controller('users')
@@ -44,22 +45,30 @@ export class UsersController {
   // }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Request() req: ExRequest) {
+    const user = req.auth?.user;
+    return this.usersService.findAll(user);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
+  @Get(':id')
+  findOne(@Param('id') id: string, @Request() req: ExRequest) {
+    const user = req.auth?.user;
+    return this.usersService.findOne(id, user);
+  }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: ExRequest,
+  ) {
+    const user = req.auth?.user;
+    return this.usersService.update(id, updateUserDto, user);
+  }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
+  @Delete(':id')
+  remove(@Param('id') id: string, @Request() req: ExRequest) {
+    const user = req.auth?.user;
+    return this.usersService.remove(id, user);
+  }
 }

@@ -16,7 +16,7 @@ export class DailyTaskService {
   ) {}
 
   // Schedule the job to create daily tasks for all floors every day at midnight
-  @Cron('* * * * *')
+  @Cron('0 0 * * *')
   async createDailyTasks() {
     this.logger.log('Creating daily tasks for all floors');
 
@@ -79,13 +79,13 @@ export class DailyTaskService {
       throw new UnauthorizedException('Invalid floor key ');
     }
     const currentDate = new Date();
-    const startOfMinute = new Date(currentDate.setSeconds(0, 0));
-    const endOfMinute = new Date(currentDate.setSeconds(59, 999));
+    const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(currentDate.setHours(23, 59, 59, 999));
 
     // Get today's task for the matched floor
     const dailyTask = await this.dailyTaskModel
       .findOne({
-        date: { $gte: startOfMinute, $lte: endOfMinute },
+        date: { $gte: startOfDay, $lte: endOfDay },
         floor: floor._id,
       })
       .exec();
@@ -110,13 +110,14 @@ export class DailyTaskService {
   // Method to fetch today's tasks for all floors
   async getTodayTasks() {
     const currentDate = new Date();
-    const startOfMinute = new Date(currentDate.setSeconds(0, 0));
-    const endOfMinute = new Date(currentDate.setSeconds(59, 999));
+    const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(currentDate.setHours(23, 59, 59, 999));
+
     const dailyTasks = await this.dailyTaskModel
       .find({
         date: {
-          $gte: startOfMinute,
-          $lte: endOfMinute,
+          $gte: startOfDay,
+          $lte: endOfDay,
         },
       })
       .exec();

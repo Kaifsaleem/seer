@@ -21,15 +21,6 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    // if (createUserDto.type === 'ADMIN') {
-    //   const admin = await this.userModel.findOne({
-    //     type: createUserDto.type,
-    //   });
-    //   if (admin) {
-    //     throw new ConflictException('Admin already exists');
-    //   }
-    // }
-
     const user = new this.userModel(createUserDto);
     await user.save();
 
@@ -37,17 +28,28 @@ export class UsersService {
     return user.toObject();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.findById(id);
-    user.set(updateUserDto);
-    return user.toObject();
+  async update(id: string, updateUserDto: UpdateUserDto, user: Express.User) {
+    if (user.type !== 'ADMIN' && user.id !== id) {
+      throw new Error('You are not authorized to update this user');
+    }
+    const existUser = await this.findById(id);
+    existUser.set(updateUserDto);
+    return existUser.toObject();
   }
 
-  async findAll() {
+  async findAll(user: Express.User) {
+    // check user is admin
+    if (user.type !== 'ADMIN') {
+      throw new Error('You are not authorized to view this user');
+    }
+
     return this.userModel.find();
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: Express.User) {
+    if (user.type !== 'ADMIN' && user.id !== id) {
+      throw new Error('You are not authorized to view this user');
+    }
     return this.findById(id);
   }
 
@@ -61,7 +63,14 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, user: Express.User) {
+    if (user.type !== 'ADMIN') {
+      throw new Error('You are not authorized to delete this user');
+    }
+    const existUser = await this.findById(id);
+    if (!existUser) {
+      throw new Error('User not found');
+    }
     await this.userModel.deleteOne({ _id: id });
   }
 }
