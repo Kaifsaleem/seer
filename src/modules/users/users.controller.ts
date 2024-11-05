@@ -1,4 +1,5 @@
 import { Controller, Body } from '@nestjs/common';
+import { Get, Patch, Param, Delete, Request } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 // import { UpdateUserDto } from './dto/update-user.dto';
@@ -42,10 +43,10 @@ export class UsersController {
   //   return this.usersService.findById(req.auth.user.id);
   // }
 
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
+  }
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {

@@ -21,14 +21,14 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    if (createUserDto.type === 'ADMIN') {
-      const admin = await this.userModel.findOne({
-        type: createUserDto.type,
-      });
-      if (admin) {
-        throw new ConflictException('Admin already exists');
-      }
-    }
+    // if (createUserDto.type === 'ADMIN') {
+    //   const admin = await this.userModel.findOne({
+    //     type: createUserDto.type,
+    //   });
+    //   if (admin) {
+    //     throw new ConflictException('Admin already exists');
+    //   }
+    // }
 
     const user = new this.userModel(createUserDto);
     await user.save();

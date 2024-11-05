@@ -25,43 +25,29 @@ export class DailyTaskService {
       this.logger.warn('No floors found. Skipping daily task creation.');
       return;
     }
-
-    // const dailyTasks = floors.map((floor) => ({
-    //   floorNumber: floor.floorNumber,
-    //   tasks: [
-    //     { name: 'Check lights', isCompleted: false },
-    //     { name: 'Clean lobby', isCompleted: false },
-    //     { name: 'Refill supplies', isCompleted: false },
-    //   ],
-    // }));
     for (const floor of floors) {
-      const tasks = [
-        { description: 'Change bedsheet', type: 'text', status: 'pending' },
-        {
-          description: 'Clean floor',
-          type: 'multipleChoice',
-          options: ['Option 1', 'Option 2'],
-          status: 'pending',
-        },
-      ];
+      const tasks = floor.tasks;
 
       const dailyTask = new this.dailyTaskModel({
         date: new Date(),
         floorTasks: tasks,
         floor: floor._id,
+        floorNumber: floor.floorNumber,
       });
 
       await dailyTask.save();
-      this.logger.log('Daily tasks created successfully for all floors');
+      this.logger.log(
+        'Daily tasks created successfully for floor ' + floor.floorNumber,
+      );
     }
   }
-  // Method to fetch and authorize tasks by QR code
-  async getTasksByQRCode(qrCode: string) {
-    const floor = await this.floorModel.findOne({ qrCode }).exec();
+  // Method to fetch and authorize tasks by foor key code
+  async getTasksByQRCode(floorKey: string) {
+    const floor = await this.floorModel.findOne({ floorKey }).exec();
     console.log(floor);
 
     if (!floor) {
-      throw new UnauthorizedException('Invalid QR code');
+      throw new UnauthorizedException('Invalid floorKey ');
     }
     const currentDate = new Date();
     const startOfMinute = new Date(currentDate.setSeconds(0, 0));
@@ -85,12 +71,12 @@ export class DailyTaskService {
   // Method to update a specific task’s status by a worke
 
   async updateTasksStatus(updateTasksDto: UpdateTasksDto) {
-    const { qrCode, tasks } = updateTasksDto;
+    const { floorKey, tasks } = updateTasksDto;
 
-    // Find floor by QR code
-    const floor = await this.floorModel.findOne({ qrCode }).exec();
+    // Find floor by QR code key
+    const floor = await this.floorModel.findOne({ floorKey }).exec();
     if (!floor) {
-      throw new UnauthorizedException('Invalid QR code');
+      throw new UnauthorizedException('Invalid floor key ');
     }
     const currentDate = new Date();
     const startOfMinute = new Date(currentDate.setSeconds(0, 0));
@@ -112,30 +98,28 @@ export class DailyTaskService {
         (t) => t._id.toString() === taskUpdate.taskId,
       );
       if (task) {
-        task.status = taskUpdate.answer;
+        task.status = taskUpdate.status;
       }
     });
 
     await dailyTask.save();
 
-    // // Find the specific floor task in daily tasks
-    // const floorTask = dailyTask.floorTasks.find(
-    //   (ft) => ft.floorNumber === floor.floorNumber,
-    // );
-    // if (!floorTask) {
-    //   throw new UnauthorizedException('Floor tasks not found');
-    // }
-
-    // // Update each task's answer in floorTask
-    // tasks.forEach(({ taskId, answer }) => {
-    //   const task = floorTask.tasks.find((t) => t._id.toString() === taskId);
-    //   if (task) {
-    //     task.answer = answer;
-    //     task.isCompleted = true; // Mark as completed when updated
-    //   }
-    // });
-
-    // await dailyTask.save();
     return dailyTask;
+  }
+
+  // Method to fetch today's tasks for all floors
+  async getTodayTasks() {
+    const currentDate = new Date();
+    const startOfMinute = new Date(currentDate.setSeconds(0, 0));
+    const endOfMinute = new Date(currentDate.setSeconds(59, 999));
+    const dailyTasks = await this.dailyTaskModel
+      .find({
+        date: {
+          $gte: startOfMinute,
+          $lte: endOfMinute,
+        },
+      })
+      .exec();
+    return dailyTasks;
   }
 }

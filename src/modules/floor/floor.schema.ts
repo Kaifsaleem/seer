@@ -11,6 +11,9 @@ export class Floor extends Document {
   @Prop({ type: String, required: true, unique: true })
   qrCode: string;
 
+  @Prop({ type: String, required: true, unique: true })
+  floorKey: string;
+
   @Prop({
     type: [
       {

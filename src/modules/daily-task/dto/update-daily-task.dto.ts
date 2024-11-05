@@ -14,16 +14,16 @@ export class UpdateTaskDto {
     description: 'Worker-provided answer for the task',
   })
   @IsString()
-  answer: string; // Worker-provided answer for the task
+  status: string; // Worker-provided answer for the task
 }
 
 export class UpdateTasksDto {
   @ApiProperty({
-    example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
-    description: 'QR code of the floor',
+    example: 'secret-key',
+    description: 'key of the floor',
   })
   @IsString()
-  qrCode: string;
+  floorKey: string;
 
   @ApiProperty({
     type: [UpdateTaskDto],
@@ -31,11 +31,11 @@ export class UpdateTasksDto {
     example: [
       {
         taskId: '60d0fe4f5311236168a109ca',
-        answer: 'Completed',
+        status: 'Completed',
       },
       {
         taskId: '60d0fe4f5311236168a109cb',
-        answer: 'Pending',
+        status: 'Pending',
       },
     ],
   })

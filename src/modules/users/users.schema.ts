@@ -54,12 +54,10 @@ export class User extends Document {
   })
   type: UserType;
 
-    @Prop({
-    default: 1,
+  @Prop({
+    required: false,
   })
   assignFloors: number[];
-
-
 
   // @Prop({
   //   default: '',

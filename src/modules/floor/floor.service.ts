@@ -38,7 +38,8 @@ export class FloorService {
     );
     // Create a new floor with QR code data
     const floor = new this.floorModel({
-      qrCode: qrCodeData, // Include QR code in floor data
+      qrCode: qrCodeData,
+      floorKey: `hotelStock_monitor_Floor-${createFloorDto.floorNumber}`, // Include QR code in floor data
       ...createFloorDto,
     });
     // const floor = new this.floorModel(createFloorDto);

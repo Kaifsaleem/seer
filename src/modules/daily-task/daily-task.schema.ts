@@ -34,7 +34,7 @@ export class Task extends Document {
     description: 'Status of the task',
     enum: ['pending', 'completed'],
   })
-  @Prop({ required: true, enum: ['pending', 'completed'], default: 'pending' })
+  @Prop({ required: true, default: 'pending' })
   status: string;
 }
 
@@ -55,6 +55,13 @@ export class DailyTask extends Document {
   })
   @Prop({ required: true, type: Types.ObjectId, ref: 'Floor' })
   floor: Types.ObjectId;
+
+  @ApiProperty({
+    example: 1,
+    description: 'The floor number',
+  })
+  @Prop({ required: true })
+  floorNumber: number;
 }
 
 export const DailyTaskSchema = SchemaFactory.createForClass(DailyTask);

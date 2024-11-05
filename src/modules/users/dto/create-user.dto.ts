@@ -73,13 +73,11 @@ export class CreateUserDto {
   })
   password: string;
 
-  // The company name associated with the user, which is required and must be at least 1 character long.
+  // The list of floor numbers assigned to the user, which is optional and defaults to an empty array.
   @ApiProperty({
-    minLength: 1, // API documentation: min length for company name is 1 characters
-    writeOnly: true, // Company name should not be returned in API responses
+    example: [1, 2, 3],
+    required: false,
   })
-  @MinLength(1, {
-    message: 'Company name is required', // Validation error message
-  })
-  company: string;
+  @IsOptional()
+  readonly floors: number[];
 }
