@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request as ExRequest } from 'express';
 import CtmPost from '../../common/decorators/post.decorator';
+import CtmAuth from 'src/common/decorators/auth.decorator';
 
 @Controller('users')
 @ApiTags('Users')
@@ -45,6 +46,7 @@ export class UsersController {
   // }
 
   @Get()
+  @CtmAuth()
   findAll(@Request() req: ExRequest) {
     const user = req.auth?.user;
     return this.usersService.findAll(user);
