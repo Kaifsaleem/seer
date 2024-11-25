@@ -1,12 +1,13 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
   DocumentBuilder,
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './global/filters/exception.filter';
+// import * as cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -21,10 +22,14 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  // Enable CORS
+  // app.use(cors());
+  app.enableCors();
+
   /**
    * This interceptor will ensure that the response is serialized, and any property that is marked with @Exclude() in the Entity will not be included in the response.
    */
-  // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
     .setTitle('HotelStock Monitor')

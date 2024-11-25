@@ -43,7 +43,9 @@ export class UsersService {
       throw new Error('You are not authorized to view this user');
     }
 
-    return this.userModel.find();
+    const users = await this.userModel.find();
+
+    return users.map((user) => user.toObject());
   }
 
   async findOne(id: string, user: Express.User) {
