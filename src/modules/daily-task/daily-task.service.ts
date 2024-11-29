@@ -1,10 +1,17 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import * as geolib from 'geolib';
+
 import { Cron } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DailyTask } from './daily-task.schema';
 import { Floor } from '../floor/floor.schema';
-import { UpdateTasksDto } from './dto/update-daily-task.dto';
+import { UpdateTasksDto, userLocation } from './dto/update-daily-task.dto';
 
 @Injectable()
 export class DailyTaskService {
@@ -25,7 +32,10 @@ export class DailyTaskService {
       this.logger.warn('No floors found. Skipping daily task creation.');
       return;
     }
-    for (const floor of floors) {
+
+    const data: DailyTask[] = [];
+
+    floors.forEach((floor) => {
       const tasks = floor.tasks;
 
       const dailyTask = new this.dailyTaskModel({
@@ -35,11 +45,30 @@ export class DailyTaskService {
         floorNumber: floor.floorNumber,
       });
 
-      await dailyTask.save();
-      this.logger.log(
+      data.push(dailyTask);
+      Logger.log(
         'Daily tasks created successfully for floor ' + floor.floorNumber,
       );
-    }
+    });
+
+    await this.dailyTaskModel.create(data);
+
+    // for (const floor  floors) {
+    //   const tasks = floor.tasks;
+
+    //   const dailyTask = new this.dailyTaskModel({
+    //     date: new Date(),
+    //     floorTasks: tasks,
+    //     floor: floor._id,
+    //     floorNumber: floor.floorNumber,
+    //   });
+
+    //   await dailyTask.save();
+    //   this.logger.log(
+    //     'Daily tasks created successfully for floor ' + floor.floorNumber,
+    //   );
+    // }
+    return;
   }
   // Method to fetch and authorize tasks by foor key code
   async getTasksByQRCode(floorKey: string) {
@@ -49,30 +78,70 @@ export class DailyTaskService {
     if (!floor) {
       throw new UnauthorizedException('Invalid floorKey ');
     }
-    const currentDate = new Date();
-    const startOfMinute = new Date(currentDate.setSeconds(0, 0));
-    const endOfMinute = new Date(currentDate.setSeconds(59, 999));
+    const isempty = await this.dailyTaskModel.find().exec();
+    if (isempty.length === 0) {
+      // create today daily task
+      this.createDailyTasks();
+    }
 
-    const dailyTask = await this.dailyTaskModel
+    // const currentDate = new Date();
+    const startOfDay = new Date(new Date().setHours(0, 0, 0, 0));
+    const endOfDay = new Date(new Date().setHours(23, 59, 59, 999));
+
+    const dailyTaskforfloor = await this.dailyTaskModel
       .findOne({
-        date: { $gte: startOfMinute, $lte: endOfMinute },
+        date: { $gte: startOfDay, $lte: endOfDay },
         floor: floor._id,
       })
       .exec();
 
-    if (!dailyTask) {
+    if (!dailyTaskforfloor) {
       throw new UnauthorizedException('No tasks found for this floor today');
     }
 
+    console.log(dailyTaskforfloor);
     // Return only the tasks for the specific floor
-    return dailyTask;
+    return dailyTaskforfloor.toObject();
   }
 
+  async isWithinGeofence(userLocation: userLocation): Promise<boolean> {
+    //take latitude and longitude from env
+    const flatitude = process.env.LATITUDE;
+    const flongitude = process.env.LONGITUDE;
+    const radius = parseFloat(process.env.RADIUS); // default radius is 0.01 degrees
+    const centerLocation = {
+      latitude: flatitude,
+      longitude: flongitude,
+    };
+    const distance = geolib.getDistance(userLocation, centerLocation); // Calculate distance in meters
+    return distance <= radius;
+    //   const hotelBounds = {
+    //     topLeft: { lat: 26.470041, lng: 80.331114 },
+    //     topRight: { lat: 26.470093, lng:  80.331153 },
+    //     bottomLeft: { lat: 26.469988, lng: 80.331196 },
+    //     bottomRight: { lat: 12.34, lng: 67.895 },
+    //   };
+
+    //   const isInside =
+    //     userLocation.latitude <= hotelBounds.topLeft.lat && // Below the top edge
+    //     userLocation.latitude >= hotelBounds.bottomLeft.lat && // Above the bottom edge
+    //     userLocation.longitude >= hotelBounds.topLeft.lng && // Right of the left edge
+    //     userLocation.longitude <= hotelBounds.topRight.lng; // Left of the right edge
+
+    //   return isInside;
+  }
   // Method to update a specific task’s status by a worke
 
-  async updateTasksStatus(updateTasksDto: UpdateTasksDto) {
+  async updateTasksStatus(updateTasksDto: UpdateTasksDto): Promise<DailyTask> {
     const { floorKey, tasks } = updateTasksDto;
 
+    // Validate geofence
+    const isInsideGeofence = await this.isWithinGeofence(
+      updateTasksDto.userLocation,
+    );
+    if (!isInsideGeofence) {
+      throw new UnauthorizedException('You are outside the geofenced area');
+    }
     // Find floor by QR code key
     const floor = await this.floorModel.findOne({ floorKey }).exec();
     if (!floor) {
@@ -104,11 +173,16 @@ export class DailyTaskService {
 
     await dailyTask.save();
 
-    return dailyTask;
+    return dailyTask.toObject();
   }
 
   // Method to fetch today's tasks for all floors
-  async getTodayTasks() {
+  // user: Express.User
+  async getTodayTasks(): Promise<DailyTask[]> {
+    // console.log(user);
+    // if (user.type !== 'ADMIN') {
+    //   throw new UnauthorizedException('You are not authorized to view tasks');
+    // }
     const currentDate = new Date();
     const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(currentDate.setHours(23, 59, 59, 999));
@@ -121,6 +195,33 @@ export class DailyTaskService {
         },
       })
       .exec();
-    return dailyTasks;
+
+    return dailyTasks.map((task) => task.toObject());
+  }
+  async getAllTasks(user: Express.User, filters: any): Promise<DailyTask[]> {
+    if (user.type !== 'ADMIN') {
+      throw new UnauthorizedException('You are not authorized to view tasks');
+    }
+    let filter = {};
+
+    if (filters) {
+      try {
+        console.log(filters);
+        // const inputDate = new Date(date);
+        // const startOfDay = new Date(inputDate.setHours(0, 0, 0, 0));
+        // const endOfDay = new Date(inputDate.setHours(23, 59, 59, 999));
+
+        filter = {
+          date: {
+            $gte: filters.fromdate,
+            $lte: filters.todate,
+          },
+        };
+      } catch (error) {
+        throw new BadRequestException('Invalid date format. Use YYYY-MM-DD.');
+      }
+    }
+    const dailyTasks = await this.dailyTaskModel.find(filter).exec();
+    return dailyTasks.map((task) => task.toObject());
   }
 }

@@ -5,7 +5,7 @@ declare global {
       firstName: string;
       lastName: string;
       email: string;
-      type:  'ADMIN' | 'USER';
+      type: 'ADMIN' | 'USER';
     }
 
     type Auth = {

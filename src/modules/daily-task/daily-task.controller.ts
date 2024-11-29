@@ -1,14 +1,19 @@
 import { Controller, Get, Patch, Body, Query } from '@nestjs/common';
-import { ApiCreatedResponse } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { DailyTaskService } from './daily-task.service';
 import { UpdateTasksDto } from './dto/update-daily-task.dto';
 import { DailyTask } from './daily-task.schema';
 
+// import { Request as ExRequest } from 'express';
+// import CtmAuth from '../../common/decorators/auth.decorator';
+
 @Controller('daily-tasks')
+@ApiTags('daily-tasks')
+// @CtmAuth()
 export class DailyTaskController {
   constructor(private readonly dailyTaskService: DailyTaskService) {}
 
-  @Get('tasks')
+  @Get('floor-tasks')
   @ApiCreatedResponse({
     description: 'daily task',
     type: DailyTask,
@@ -23,6 +28,8 @@ export class DailyTaskController {
     type: DailyTask,
   })
   async getTodayTasks() {
+    // @Request() req: ExRequest
+    // const user = req.auth?.user;
     return this.dailyTaskService.getTodayTasks();
   }
 
@@ -37,4 +44,27 @@ export class DailyTaskController {
   ) {
     return this.dailyTaskService.updateTasksStatus(updateTasksDto);
   }
+
+  // @Get('all')
+  // @ApiCreatedResponse({
+  //   description: 'daily task',
+  //   type: DailyTask,
+  // })
+  // @ApiQuery({ name: 'fromDate', required: false, type: String })
+  // @ApiQuery({ name: 'toDate', required: false, type: String })
+  // async getAllTasks(
+  //   @Request() req: ExRequest,
+  //   @Query('fromDate') fromDate?: string,
+  //   @Query('toDate') toDate?: string,
+  // ) {
+  //   const user = req.auth?.user;
+  //   const filters = {};
+  //   if (fromDate) {
+  //     filters['fromDate'] = fromDate;
+  //   }
+  //   if (toDate) {
+  //     filters['toDate'] = toDate;
+  //   }
+  //   return this.dailyTaskService.getAllTasks(user, filters);
+  // }
 }
