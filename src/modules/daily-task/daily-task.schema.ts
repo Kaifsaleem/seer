@@ -1,10 +1,12 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { Document } from 'mongoose';
+import CtmSchema from '../../common/decorators/schema.decorator';
+import { Document } from '../../common/schema/document.schema';
+import { Transform } from 'class-transformer';
 // import { Task, TaskSchema } from './task.schema';
 
-@Schema()
+@CtmSchema()
 export class Task extends Document {
   @ApiProperty({
     example: 'Change bedsheet',
@@ -40,7 +42,7 @@ export class Task extends Document {
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
 
-@Schema()
+@CtmSchema()
 export class DailyTask extends Document {
   @Prop({ required: true })
   date: Date;
@@ -54,6 +56,7 @@ export class DailyTask extends Document {
     description: 'The unique identifier of the floor',
   })
   @Prop({ required: true, type: Types.ObjectId, ref: 'Floor' })
+  @Transform(({ value }) => value.toString(), { toPlainOnly: true })
   floor: Types.ObjectId;
 
   @ApiProperty({

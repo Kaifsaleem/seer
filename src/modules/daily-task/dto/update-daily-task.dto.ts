@@ -16,7 +16,13 @@ export class UpdateTaskDto {
   @IsString()
   status: string; // Worker-provided answer for the task
 }
+export class userLocation {
+  @IsNotEmpty()
+  latitude: number; // Latitude of the user's location
 
+  @IsNotEmpty()
+  longitude: number; // Longitude of the user's location
+}
 export class UpdateTasksDto {
   @ApiProperty({
     example: 'secret-key',
@@ -42,4 +48,16 @@ export class UpdateTasksDto {
   @IsArray()
   @IsNotEmpty({ each: true })
   tasks: UpdateTaskDto[];
+
+  // user location
+  @ApiProperty({
+    type: userLocation,
+    description: 'User location',
+    example: {
+      latitude: 37.7749,
+      longitude: -122.4194,
+    },
+  })
+  @IsNotEmpty()
+  userLocation: userLocation;
 }

@@ -64,7 +64,7 @@ export class FloorService {
       // Re-throw if it's an unexpected error
       throw error;
     }
-    return floor;
+    return floor.toObject();
   }
 
   async findOneByFloorNumber(floorNumber: number) {
@@ -74,13 +74,13 @@ export class FloorService {
         `Floor with floor number ${floorNumber} not found`,
       );
     }
-    return floor;
+    return floor.toObject();
   }
 
   async findAll() {
     const floorsData = await this.floorModel.find();
     console.log(floorsData);
-    return floorsData;
+    return floorsData.map((floor) => floor.toObject());
   }
 
   async update(id: string, updateFloorDto: UpdateFloorDto) {
@@ -96,7 +96,8 @@ export class FloorService {
       }
     });
     floor.tasks = [...floor.tasks, ...updateFloorDto.tasks];
-    return floor.save();
+    await floor.save();
+    return floor.toObject();
     // return this.floorModel.findByIdAndUpdate(id, updateFloorDto, { new: true });
   }
 
@@ -105,6 +106,6 @@ export class FloorService {
     if (!deletedFloor) {
       throw new NotFoundException(`Floor with ID ${id} not found`);
     }
-    return deletedFloor;
+    return deletedFloor.toObject();
   }
 }

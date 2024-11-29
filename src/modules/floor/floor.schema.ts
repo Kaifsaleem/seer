@@ -1,9 +1,10 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import CtmSchema from '../../common/decorators/schema.decorator';
+import { Document } from '../../common/schema/document.schema';
 // import { ApiProperty } from '@nestjs/swagger';
 // import * as mongoose from 'mongoose';
 
-@Schema()
+@CtmSchema()
 export class Floor extends Document {
   @Prop({ type: Number, required: true, unique: true })
   floorNumber: number;
