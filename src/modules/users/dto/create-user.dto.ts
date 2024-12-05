@@ -79,5 +79,6 @@ export class CreateUserDto {
     required: false,
   })
   @IsOptional()
-  readonly floors: number[];
+  // @IsNotEmpty()
+  readonly assignFloors: number[];
 }
