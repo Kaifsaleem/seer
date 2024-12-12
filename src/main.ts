@@ -29,7 +29,7 @@ async function bootstrap() {
   /**
    * This interceptor will ensure that the response is serialized, and any property that is marked with @Exclude() in the Entity will not be included in the response.
    */
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
     .setTitle('HotelStock Monitor')

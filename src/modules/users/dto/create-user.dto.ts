@@ -74,11 +74,26 @@ export class CreateUserDto {
   password: string;
 
   // The list of floor numbers assigned to the user, which is optional and defaults to an empty array.
+  // @ApiProperty({
+  //   example: [1, 2, 3],
+  //   required: false,
+  // })
+  // @IsOptional()
+  // // @IsNotEmpty()
+  // readonly;
+
   @ApiProperty({
-    example: [1, 2, 3],
+    example: [
+      {
+        floor: 1,
+        rooms: [101, 102],
+      },
+    ],
     required: false,
   })
   @IsOptional()
-  // @IsNotEmpty()
-  readonly assignFloors: number[];
+  assignedFloorsRooms: {
+    floor: number;
+    rooms: number[];
+  }[];
 }

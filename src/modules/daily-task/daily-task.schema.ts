@@ -1,9 +1,9 @@
 import { Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+// import { Types } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import CtmSchema from '../../common/decorators/schema.decorator';
 import { Document } from '../../common/schema/document.schema';
-import { Transform } from 'class-transformer';
+// import { Transform } from 'class-transformer';
 // import { Task, TaskSchema } from './task.schema';
 
 @CtmSchema()
@@ -49,15 +49,15 @@ export class DailyTask extends Document {
 
   @ApiProperty({ type: [Task], description: 'Array of tasks for the floor' })
   @Prop({ type: [TaskSchema], required: true })
-  floorTasks: Task[];
+  roomTasks: Task[];
 
-  @ApiProperty({
-    example: '60d0fe4f5311236168a109ca',
-    description: 'The unique identifier of the floor',
-  })
-  @Prop({ required: true, type: Types.ObjectId, ref: 'Floor' })
-  @Transform(({ value }) => value.toString(), { toPlainOnly: true })
-  floor: Types.ObjectId;
+  // @ApiProperty({
+  //   example: '60d0fe4f5311236168a109ca',
+  //   description: 'The unique identifier of the floor',
+  // })
+  // @Prop({ required: true, type: Types.ObjectId, ref: 'Floor' })
+  // @Transform(({ value }) => value.toString(), { toPlainOnly: true })
+  // floor: Types.ObjectId;
 
   @ApiProperty({
     example: 1,
@@ -65,6 +65,13 @@ export class DailyTask extends Document {
   })
   @Prop({ required: true })
   floorNumber: number;
+
+  @ApiProperty({
+    example: 1,
+    description: 'The room number',
+  })
+  @Prop({ required: true })
+  roomNumber: number;
 }
 
 export const DailyTaskSchema = SchemaFactory.createForClass(DailyTask);

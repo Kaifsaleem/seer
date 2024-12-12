@@ -12,6 +12,7 @@ import { Model } from 'mongoose';
 import { DailyTask } from './daily-task.schema';
 import { Floor } from '../floor/floor.schema';
 import { UpdateTasksDto, userLocation } from './dto/update-daily-task.dto';
+import { Room } from '../room/room.schema';
 
 @Injectable()
 export class DailyTaskService {
@@ -20,6 +21,7 @@ export class DailyTaskService {
   constructor(
     @InjectModel(DailyTask.name) private dailyTaskModel: Model<DailyTask>,
     @InjectModel(Floor.name) private floorModel: Model<Floor>,
+    @InjectModel(Room.name) private roomModel: Model<Room>,
   ) {}
 
   // Schedule the job to create daily tasks for all floors every day at midnight
@@ -32,76 +34,73 @@ export class DailyTaskService {
       this.logger.warn('No floors found. Skipping daily task creation.');
       return;
     }
-
+    console.log(floors);
     const data: DailyTask[] = [];
 
-    floors.forEach((floor) => {
-      const tasks = floor.tasks;
+    for (const floor of floors) {
+      for (const room of floor.rooms) {
+        const roomData = await this.roomModel
+          .findOne({
+            _id: room,
+          })
+          .exec();
+        const tasks = roomData.tasks;
 
-      const dailyTask = new this.dailyTaskModel({
-        date: new Date(),
-        floorTasks: tasks,
-        floor: floor._id,
-        floorNumber: floor.floorNumber,
-      });
+        const dailyTask = new this.dailyTaskModel({
+          date: new Date(),
+          roomTasks: tasks,
+          floorNumber: floor.floorNumber,
+          roomNumber: roomData.roomNumber,
+        });
 
-      data.push(dailyTask);
-      Logger.log(
-        'Daily tasks created successfully for floor ' + floor.floorNumber,
-      );
-    });
+        console.log(dailyTask);
+        data.push(dailyTask);
+        Logger.log(
+          'Daily tasks created successfully for floor ' +
+            floor.floorNumber +
+            ' room ' +
+            roomData.roomNumber,
+        );
+      }
+      console.log('hello');
+    }
 
     await this.dailyTaskModel.create(data);
-
-    // for (const floor  floors) {
-    //   const tasks = floor.tasks;
-
-    //   const dailyTask = new this.dailyTaskModel({
-    //     date: new Date(),
-    //     floorTasks: tasks,
-    //     floor: floor._id,
-    //     floorNumber: floor.floorNumber,
-    //   });
-
-    //   await dailyTask.save();
-    //   this.logger.log(
-    //     'Daily tasks created successfully for floor ' + floor.floorNumber,
-    //   );
-    // }
     return;
   }
   // Method to fetch and authorize tasks by foor key code
-  async getTasksByQRCode(floorKey: string) {
-    const floor = await this.floorModel.findOne({ floorKey }).exec();
-    console.log(floor);
+  async getTasksByQRCode(roomKey: string) {
+    const room = await this.roomModel.findOne({ roomKey }).exec();
+    console.log(room);
 
-    if (!floor) {
+    if (!room) {
       throw new UnauthorizedException('Invalid floorKey ');
     }
     const isempty = await this.dailyTaskModel.find().exec();
     if (isempty.length === 0) {
       // create today daily task
       this.createDailyTasks();
+      throw new UnauthorizedException('No tasks found for this floor today');
     }
 
     // const currentDate = new Date();
     const startOfDay = new Date(new Date().setHours(0, 0, 0, 0));
     const endOfDay = new Date(new Date().setHours(23, 59, 59, 999));
 
-    const dailyTaskforfloor = await this.dailyTaskModel
+    const dailyTaskForRoom = await this.dailyTaskModel
       .findOne({
         date: { $gte: startOfDay, $lte: endOfDay },
-        floor: floor._id,
+        roomNumber: room.roomNumber,
       })
       .exec();
 
-    if (!dailyTaskforfloor) {
+    if (!dailyTaskForRoom) {
       throw new UnauthorizedException('No tasks found for this floor today');
     }
 
-    console.log(dailyTaskforfloor);
+    console.log(dailyTaskForRoom);
     // Return only the tasks for the specific floor
-    return dailyTaskforfloor.toObject();
+    return dailyTaskForRoom.toObject();
   }
 
   async isWithinGeofence(userLocation: userLocation): Promise<boolean> {
@@ -133,19 +132,19 @@ export class DailyTaskService {
   // Method to update a specific task’s status by a worke
 
   async updateTasksStatus(updateTasksDto: UpdateTasksDto): Promise<DailyTask> {
-    const { floorKey, tasks } = updateTasksDto;
+    const { roomKey, tasks } = updateTasksDto;
 
     // Validate geofence
     const isInsideGeofence = await this.isWithinGeofence(
       updateTasksDto.userLocation,
     );
-    if (!isInsideGeofence) {
-      throw new UnauthorizedException('You are outside the geofenced area');
-    }
+    // if (!isInsideGeofence) {
+    //   throw new UnauthorizedException('You are outside the geofenced area');
+    // }
     // Find floor by QR code key
-    const floor = await this.floorModel.findOne({ floorKey }).exec();
-    if (!floor) {
-      throw new UnauthorizedException('Invalid floor key ');
+    const room = await this.roomModel.findOne({ roomKey }).exec();
+    if (!room) {
+      throw new UnauthorizedException('Invalid room key ');
     }
     const currentDate = new Date();
     const startOfDay = new Date(currentDate.setHours(0, 0, 0, 0));
@@ -155,15 +154,15 @@ export class DailyTaskService {
     const dailyTask = await this.dailyTaskModel
       .findOne({
         date: { $gte: startOfDay, $lte: endOfDay },
-        floor: floor._id,
+        roomNumber: room.roomNumber,
       })
       .exec();
 
     if (!dailyTask) {
-      throw new UnauthorizedException('No tasks found for this floor today');
+      throw new UnauthorizedException('No tasks found for this room today');
     }
     tasks.forEach((taskUpdate) => {
-      const task = dailyTask.floorTasks.find(
+      const task = dailyTask.roomTasks.find(
         (t) => t._id.toString() === taskUpdate.taskId,
       );
       if (task) {

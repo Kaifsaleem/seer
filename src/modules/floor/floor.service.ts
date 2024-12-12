@@ -1,13 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateFloorDto } from './dto/create-floor.dto';
-import { UpdateFloorDto } from './dto/update-floor.dto';
+// import { UpdateFloorDto } from './dto/update-floor.dto';
 import { Floor } from './floor.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as QRCode from 'qrcode';
-
-// import { User } from '../users/users.schema';
 
 @Injectable()
 export class FloorService {
@@ -22,29 +19,13 @@ export class FloorService {
 
     if (existFloor) {
       throw new BadRequestException(
-        'Floor already exist you can only update it',
+        'Floor already exist you can only add rooms in it',
       );
     }
-    createFloorDto.tasks.forEach((task) => {
-      if (task.type === 'text' && task.options.length > 0) {
-        throw new BadRequestException(
-          'no options are allowed for text type tasks',
-        );
-      }
-    });
-    // console.log('this.floorModel(createFloorDto)');
-    const qrCodeData = await QRCode.toDataURL(
-      `hotelStock_monitor_Floor-${createFloorDto.floorNumber}`,
-    );
-    // Create a new floor with QR code data
-    const floor = new this.floorModel({
-      qrCode: qrCodeData,
-      floorKey: `hotelStock_monitor_Floor-${createFloorDto.floorNumber}`, // Include QR code in floor data
-      ...createFloorDto,
-    });
-    // const floor = new this.floorModel(createFloorDto);
-    // console.log(floor);
+
+    const floor = new this.floorModel(createFloorDto);
     try {
+      console.log(floor);
       await floor.save();
     } catch (error) {
       // Handle Mongoose validation errors
@@ -55,6 +36,7 @@ export class FloorService {
             .join(', '),
         );
       }
+      console.log(error);
       // Handle duplicate key error
       if (error.code === 11000) {
         throw new ConflictException(
@@ -83,23 +65,23 @@ export class FloorService {
     return floorsData.map((floor) => floor.toObject());
   }
 
-  async update(id: string, updateFloorDto: UpdateFloorDto) {
-    const floor = await this.floorModel.findById(id);
-    if (!floor) {
-      throw new BadRequestException('Floor does not exist');
-    }
-    updateFloorDto.tasks.forEach((task) => {
-      if (task.type === 'text' && task.options.length > 0) {
-        throw new BadRequestException(
-          'no options are allowed for text type tasks',
-        );
-      }
-    });
-    floor.tasks = [...floor.tasks, ...updateFloorDto.tasks];
-    await floor.save();
-    return floor.toObject();
-    // return this.floorModel.findByIdAndUpdate(id, updateFloorDto, { new: true });
-  }
+  // async update(id: string, updateFloorDto: UpdateFloorDto) {
+  //   const floor = await this.floorModel.findById(id);
+  //   if (!floor) {
+  //     throw new BadRequestException('Floor does not exist');
+  //   }
+  //   updateFloorDto.tasks.forEach((task) => {
+  //     if (task.type === 'text' && task.options.length > 0) {
+  //       throw new BadRequestException(
+  //         'no options are allowed for text type tasks',
+  //       );
+  //     }
+  //   });
+  //   floor.tasks = [...floor.tasks, ...updateFloorDto.tasks];
+  //   await floor.save();
+  //   return floor.toObject();
+  //   // return this.floorModel.findByIdAndUpdate(id, updateFloorDto, { new: true });
+  // }
 
   async remove(id: string) {
     const deletedFloor = await this.floorModel.findByIdAndDelete(id).exec();
