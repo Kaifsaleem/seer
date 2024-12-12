@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -139,12 +140,17 @@ export class UsersService {
 
   async remove(id: string, user: Express.User) {
     if (user.type !== 'ADMIN') {
-      throw new Error('You are not authorized to delete this user');
+      throw new BadRequestException(
+        'You are not authorized to delete this user',
+      );
     }
     const existUser = await this.findById(id);
     if (!existUser) {
-      throw new Error('User not found');
+      throw new BadRequestException('User not found');
     }
     await this.userModel.deleteOne({ _id: id });
+    // return exist user deleted
+
+    return existUser.toObject();
   }
 }
