@@ -83,7 +83,9 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @CtmAuth(Action.Delete)
   remove(@Param('id') id: string, @Request() req: ExRequest) {
+    //check user is exist or not
     const user = req.auth?.user;
     return this.usersService.remove(id, user);
   }
