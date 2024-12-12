@@ -13,7 +13,7 @@ import { DailyTask } from './daily-task.schema';
 export class DailyTaskController {
   constructor(private readonly dailyTaskService: DailyTaskService) {}
 
-  @Get('floor-tasks')
+  @Get('room-tasks')
   @ApiCreatedResponse({
     description: 'daily task',
     type: DailyTask,

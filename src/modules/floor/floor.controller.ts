@@ -3,7 +3,7 @@ import {
   Get,
   Post,
   Body,
-  Patch,
+  // Patch,
   Param,
   Delete,
   Request,
@@ -11,7 +11,7 @@ import {
 import { Request as ExRequest } from 'express';
 import { FloorService } from './floor.service';
 import { CreateFloorDto } from './dto/create-floor.dto';
-import { UpdateFloorDto } from './dto/update-floor.dto';
+// import { UpdateFloorDto } from './dto/update-floor.dto';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import CtmAuth from '../../common/decorators/auth.decorator';
 
@@ -52,14 +52,14 @@ export class FloorController {
     return this.floorService.findOneByFloorNumber(floor);
   }
 
-  @Patch(':id')
-  @ApiCreatedResponse({
-    description: 'update Floor',
-    type: UpdateFloorDto,
-  })
-  update(@Param('id') id: string, @Body() updateFloorDto: UpdateFloorDto) {
-    return this.floorService.update(id, updateFloorDto);
-  }
+  // @Patch(':id')
+  // @ApiCreatedResponse({
+  //   description: 'update Floor',
+  //   type: UpdateFloorDto,
+  // })
+  // update(@Param('id') id: string, @Body() updateFloorDto: UpdateFloorDto) {
+  //   return this.floorService.update(id, updateFloorDto);
+  // }
 
   @Delete(':id')
   @ApiCreatedResponse({

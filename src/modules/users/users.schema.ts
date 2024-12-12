@@ -54,10 +54,26 @@ export class User extends Document {
   })
   type: UserType;
 
+  // @Prop({
+  //   required: false,
+  // })
+  // assignFloors: number[];
+  // assigned floors and rooms in object arrays
   @Prop({
     required: false,
+    type: [
+      {
+        floor: { type: Number, required: true },
+        rooms: { type: [Number], required: true },
+        _id: false,
+      },
+    ],
+    default: [],
   })
-  assignFloors: number[];
+  assignedFloorsRooms: {
+    floor: number;
+    rooms: number[];
+  }[];
 
   // @Prop({
   //   default: '',

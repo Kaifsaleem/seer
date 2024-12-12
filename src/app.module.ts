@@ -10,6 +10,7 @@ import { AuthMiddleware } from './modules/auth/auth.middleware';
 import { FloorModule } from './modules/floor/floor.module';
 import { DailyTaskModule } from './modules/daily-task/daily-task.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RoomModule } from './modules/room/room.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     UsersModule,
     FloorModule,
     DailyTaskModule,
+    RoomModule,
   ],
   controllers: [AppController],
   providers: [AppService],

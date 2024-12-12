@@ -29,7 +29,7 @@ export class UpdateTasksDto {
     description: 'key of the floor',
   })
   @IsString()
-  floorKey: string;
+  roomKey: string;
 
   @ApiProperty({
     type: [UpdateTaskDto],
