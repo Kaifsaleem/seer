@@ -2,7 +2,9 @@ import { Prop, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { Logger } from '@nestjs/common';
-import { UserType, UserTypes } from '../../common/types';
+export enum UserType {
+  ADMIN = 'ADMIN',
+}
 import { Exclude } from 'class-transformer';
 import { Document } from '../../common/schema/document.schema';
 import CtmSchema from '../../common/decorators/schema.decorator';
@@ -29,66 +31,17 @@ export class User extends Document {
   })
   email: string;
 
-  // @Prop({})
-  // phone: string;
-
   @Prop({
     required: true,
   })
   @Exclude()
   password: string;
 
-  // @Prop({
-  //   default: '',
-  // })
-  // passwordResetToken: string;
-
-  // @Prop({
-  //   default: '',
-  // })
-  // passwordResetExpires: Date;
-
   @Prop({
-    default: 'User',
-    enum: Object.values(UserTypes),
+    default: UserType.ADMIN,
+    enum: Object.values(UserType),
   })
   type: UserType;
-
-  // @Prop({
-  //   required: false,
-  // })
-  // assignFloors: number[];
-  // assigned floors and rooms in object arrays
-  @Prop({
-    required: false,
-    type: [
-      {
-        floor: { type: Number, required: true },
-        rooms: { type: [Number], required: true },
-        _id: false,
-      },
-    ],
-    default: [],
-  })
-  assignedFloorsRooms: {
-    floor: number;
-    rooms: number[];
-  }[];
-
-  // @Prop({
-  //   default: '',
-  // })
-  // verificationToken: string;
-
-  // @Prop({
-  //   default: '',
-  // })
-  // mailVerificationExpires: Date;
-
-  // @Prop({
-  //   default: false,
-  // })
-  // isEmailVerified: boolean;
 
   async comparePassword(candidatePassword: string) {
     try {
@@ -98,28 +51,6 @@ export class User extends Document {
     }
     return false;
   }
-
-  // async generateResetPasswordToken() {
-  //   try {
-  //     const buffer = randomBytes(32);
-  //     const resetToken = buffer.toString('hex');
-  //     return resetToken;
-  //   } catch (error) {
-  //     Logger.error(error.message, 'generateResetPasswordToken');
-  //   }
-  //   return '';
-  // }
-
-  // async generateEmailVerificationToken() {
-  //   try {
-  //     const buffer = randomBytes(32);
-  //     const verificationToken = buffer.toString('hex');
-  //     return verificationToken;
-  //   } catch (error) {
-  //     Logger.error(error.message, 'generateVerificationToken');
-  //   }
-  //   return '';
-  // }
 }
 
 export type UserDocument = HydratedDocument<User>;

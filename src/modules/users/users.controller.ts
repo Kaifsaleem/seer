@@ -9,7 +9,7 @@ import { Request as ExRequest } from 'express';
 import CtmPost from '../../common/decorators/post.decorator';
 import CtmAuth from '../../common/decorators/auth.decorator';
 import { Action } from '../ability/ability.interface';
-import { allocationDto } from './dto/allocation.dto';
+// import { allocationDto } from './dto/allocation.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -71,16 +71,16 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto, user);
   }
 
-  @Patch('/assign-floor-room/:id')
-  @CtmAuth(Action.Update)
-  updateRoomAndFloor(
-    @Param('id') id: string,
-    @Body() Allocation: allocationDto,
-    @Request() req: ExRequest,
-  ) {
-    const user = req.auth?.user;
-    return this.usersService.updateAssignedFloorsRooms(id, Allocation, user);
-  }
+  // @Patch('/assign-floor-room/:id')
+  // @CtmAuth(Action.Update)
+  // updateRoomAndFloor(
+  //   @Param('id') id: string,
+  //   @Body() Allocation: allocationDto,
+  //   @Request() req: ExRequest,
+  // ) {
+  //   const user = req.auth?.user;
+  //   return this.usersService.updateAssignedFloorsRooms(id, Allocation, user);
+  // }
 
   @Delete(':id')
   @CtmAuth(Action.Delete)

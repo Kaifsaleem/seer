@@ -2,40 +2,41 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './users.schema';
+import { User, UserType } from './users.schema';
 import { Model } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { allocationDto } from './dto/allocation.dto';
-import { Room } from '../room/room.schema';
-import { Floor } from '../floor/floor.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(Room.name) private roomModel: Model<Room>,
-    @InjectModel(Floor.name) private floorModel: Model<Floor>,
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, user?: Express.User) {
+    console.log(user);
+    if (user && user.type !== UserType.ADMIN) {
+      throw new BadRequestException('Only admins can create new users');
+    }
     const isEmailExist = await this.findByEmail(createUserDto.email);
 
-    // TODO: Mabye we can create a custom decorator for this
     if (isEmailExist) {
       throw new ConflictException('Email already exists');
     }
 
-    const user = new this.userModel(createUserDto);
-    await user.save();
+    // Ensure only admin users can be created
+    const newUser = new this.userModel({
+      ...createUserDto,
+      type: UserType.ADMIN,
+    });
+    await newUser.save();
 
-    this.eventEmitter.emit('user.create.success', user, createUserDto);
-    return user.toObject();
+    this.eventEmitter.emit('user.create.success', newUser, createUserDto);
+    return newUser.toObject();
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, user: Express.User) {
@@ -48,66 +49,6 @@ export class UsersService {
     existUser.set(updateUserDto);
     await existUser.save();
     return existUser.toObject();
-  }
-
-  // assign floorsand rooms to user by admin
-  async updateAssignedFloorsRooms(
-    userId: string,
-    updateDto: allocationDto,
-    user: Express.User,
-  ): Promise<User> {
-    if (user.type !== 'ADMIN') {
-      throw new Error('You are not authorized to update this user');
-    }
-
-    const { assignedFloorsRooms } = updateDto;
-
-    const validatedFloorsRooms = [];
-    assignedFloorsRooms.forEach(async (floorRoom) => {
-      // });
-      // for (const floorRoom of assignedFloorsRooms) {
-      const { floor, rooms } = floorRoom;
-
-      // Check if floor exists in the Floor model
-      const existingFloor = await this.floorModel
-        .findOne({ floorNumber: floor })
-        .exec();
-      if (!existingFloor) {
-        throw new NotFoundException(`Floor ${floor} does not exist.`);
-      }
-      // Check if all rooms exist in the Room model
-      const existingRooms = await this.roomModel
-        .find({ roomNumber: { $in: rooms } })
-        .exec();
-
-      if (existingRooms.length !== rooms.length) {
-        console.log(existingRooms.length, rooms.length);
-        throw new NotFoundException(
-          `Some rooms do not exist: ${rooms.filter(
-            (room) =>
-              !existingRooms.some(
-                (existingRoom) => existingRoom.roomNumber === room,
-              ),
-          )}`,
-        );
-      }
-
-      // Append validated floorRoom data
-      validatedFloorsRooms.push({ floor, rooms });
-    });
-
-    // Update user with validated data
-    const updatedUser = await this.userModel.findById(userId).exec();
-
-    if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
-    }
-
-    const existdata = updatedUser.assignedFloorsRooms;
-    existdata.push(...validatedFloorsRooms);
-    await updatedUser.save();
-
-    return updatedUser;
   }
 
   async findAll(user: Express.User) {

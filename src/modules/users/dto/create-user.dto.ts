@@ -81,19 +81,4 @@ export class CreateUserDto {
   // @IsOptional()
   // // @IsNotEmpty()
   // readonly;
-
-  @ApiProperty({
-    example: [
-      {
-        floor: 1,
-        rooms: [101, 102],
-      },
-    ],
-    required: false,
-  })
-  @IsOptional()
-  assignedFloorsRooms: {
-    floor: number;
-    rooms: number[];
-  }[];
 }

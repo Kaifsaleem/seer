@@ -7,10 +7,10 @@ import EventEmitterProvider from './global/providers/eventEmmiter.provider';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthMiddleware } from './modules/auth/auth.middleware';
-import { FloorModule } from './modules/floor/floor.module';
-import { DailyTaskModule } from './modules/daily-task/daily-task.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { RoomModule } from './modules/room/room.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { ConsultantModule } from './modules/consultant/consultant.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -18,11 +18,16 @@ import { RoomModule } from './modules/room/room.module';
     MongooseConnProvider,
     ScheduleModule.forRoot(),
     EventEmitterProvider,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 10, // 10 requests per minute
+      },
+    ]),
     AuthModule,
     UsersModule,
-    FloorModule,
-    DailyTaskModule,
-    RoomModule,
+    CustomersModule,
+    ConsultantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

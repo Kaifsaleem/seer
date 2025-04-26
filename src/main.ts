@@ -1,11 +1,11 @@
-import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
   DocumentBuilder,
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionsFilter } from './global/filters/exception.filter';
 // import * as cors from 'cors';
 
@@ -32,11 +32,14 @@ async function bootstrap() {
   // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
-    .setTitle('HotelStock Monitor')
-    .setDescription('API Documentation for HotelStock Monitor')
+    .setTitle('Imutual fund rag system')
+    .setDescription('API Documentation for mutual fund rag system')
     .setVersion('1.0')
     .addTag('Auth')
     .addTag('Users')
+    .addTag('Inventory')
+    .addTag('Customers')
+    .addTag('Invoices')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -48,7 +51,7 @@ async function bootstrap() {
   };
   SwaggerModule.setup('docs', app, document, swaggerOptions);
 
-  await app.listen(3000);
-  // console.log(`Application is running on: ${await app.getUrl()}`);
+  await app.listen(4006);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
