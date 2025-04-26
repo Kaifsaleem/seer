@@ -63,12 +63,14 @@ export class AiService {
   }
 
   async search(query: string) {
+    const improvedQuery = ` the qsn is ${query} and  hey AI you are the only design for giving answeer and conditions related to funds and finance only if other than asked you kindly stop them `;
+
     try {
       const chat = this.model.startChat({
         tools: [{ google_search: {} }],
       });
 
-      const result = await chat.sendMessage(query);
+      const result = await chat.sendMessage(improvedQuery);
       const response = await result.response;
       const text = response.text();
       const formattedText = await this.formatResponseToMarkdown(text);

@@ -21,7 +21,12 @@ export class ConsultantVectorService {
     for (let i = 0; i < embedding.length; i++) {
       const singleEmbedding = embedding[i];
       const documentId = `${id}_${i}`; // Create unique ID for each embedding value
-
+      console.log('Processing embedding:', singleEmbedding);
+      console.log('Document ID:', documentId);
+      console.log('Content:', content);
+      console.log('Metadata:', metadata);
+      console.log('Metadata URI:', metadata.uri || 'https://docs.nestjs.com/');
+      console.log('Metadata Topic:', metadata.topic || 'nestjs');
       try {
         console.log({
           documents: [content],
