@@ -11,6 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { CustomersModule } from './modules/customers/customers.module';
 import { ConsultantModule } from './modules/consultant/consultant.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     UsersModule,
     CustomersModule,
     ConsultantModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
